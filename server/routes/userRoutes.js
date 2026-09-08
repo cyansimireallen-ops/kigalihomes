@@ -6,7 +6,7 @@ const upload = require('../middleware/uploadMiddleware');
 const router = express.Router();
 
 router.get('/me', protect, getMe);
-router.put('/me', protect, upload.single('profileImage'), updateMe);
+router.put('/me', protect, upload.uploadSingleImage, upload.uploadProfileImageToCloudinary, updateMe);
 router.put('/me/password', protect, changePassword);
 router.delete('/me', protect, deleteMe);
 

@@ -18,8 +18,8 @@ router.get('/featured', getFeaturedProperties);
 router.get('/mine/all', protect, getMyProperties);
 router.get('/:id', getPropertyById);
 
-router.post('/', protect, ownerOrAdmin, upload.uploadPropertyMedia, createProperty);
-router.put('/:id', protect, upload.uploadPropertyMedia, updateProperty);
+router.post('/', protect, ownerOrAdmin, upload.uploadPropertyMedia, upload.uploadPropertyMediaToCloudinary, createProperty);
+router.put('/:id', protect, upload.uploadPropertyMedia, upload.uploadPropertyMediaToCloudinary, updateProperty);
 router.delete('/:id', protect, deleteProperty);
 
 module.exports = router;

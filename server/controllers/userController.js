@@ -34,7 +34,7 @@ const updateMe = asyncHandler(async (req, res) => {
   if (name) user.name = name;
   if (phone) user.phone = phone;
   if (bio !== undefined) user.bio = bio;
-  if (req.file) user.profileImage = `/uploads/${req.file.filename}`;
+  if (req.uploadedImage) user.profileImage = req.uploadedImage;
 
   const updated = await user.save();
   res.json({ success: true, user: updated.toSafeObject() });

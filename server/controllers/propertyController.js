@@ -109,8 +109,8 @@ const createProperty = asyncHandler(async (req, res) => {
     throw new Error('Please fill in all required property fields');
   }
 
-  const images = (req.files?.images || []).map((f) => `/uploads/${f.filename}`);
-  const video = req.files?.video?.[0] ? `/uploads/${req.files.video[0].filename}` : '';
+  const images = req.uploadedImages || [];
+  const video = req.uploadedVideo || '';
 
   // Admins adding a listing themselves (no agent involved) act as their own point of
   // contact, so their listings publish immediately instead of waiting on approval.
@@ -194,13 +194,12 @@ const updateProperty = asyncHandler(async (req, res) => {
     property.status = 'pending';
   }
 
-  if (req.files?.images?.length > 0) {
-    const newImages = req.files.images.map((f) => `/uploads/${f.filename}`);
-    property.images = [...property.images, ...newImages].slice(0, 10);
+  if (req.uploadedImages?.length > 0) {
+    property.images = [...property.images, ...req.uploadedImages].slice(0, 10);
   }
 
-  if (req.files?.video?.[0]) {
-    property.video = `/uploads/${req.files.video[0].filename}`;
+  if (req.uploadedVideo) {
+    property.video = req.uploadedVideo;
   } else if (req.body.removeVideo === 'true') {
     property.video = '';
   }
