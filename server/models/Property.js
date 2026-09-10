@@ -13,6 +13,10 @@ const propertySchema = new mongoose.Schema(
     price: { type: Number, required: true, min: 0 },
     location: { type: String, required: true, trim: true },
     address: { type: String, default: '' },
+    district: { type: String, default: '' },
+    sector: { type: String, default: '' },
+    cell: { type: String, default: '' },
+    village: { type: String, default: '' },
     bedrooms: { type: Number, default: 0 },
     bathrooms: { type: Number, default: 0 },
     size: { type: Number, default: 0 }, // square meters

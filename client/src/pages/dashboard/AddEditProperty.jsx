@@ -5,15 +5,18 @@ import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/Input';
+import PhoneInput from '../../components/PhoneInput';
 import Select from '../../components/Select';
 import Button from '../../components/Button';
 import { imageUrl } from '../../utils/format';
+import { RWANDA_DISTRICTS } from '../../utils/rwandaDistricts';
 
 const amenitiesList = ['Parking', 'Water Tank', 'Security', 'Wi-Fi', 'Generator', 'Swimming Pool', 'Garden', 'CCTV'];
 const MAX_VIDEO_MB = 60;
 
 const emptyForm = {
-  title: '', description: '', purpose: 'rent', propertyType: 'house', price: '', location: '', address: '',
+  title: '', description: '', purpose: 'rent', propertyType: 'house', price: '', location: '',
+  district: '', sector: '', cell: '', village: '',
   bedrooms: '', bathrooms: '', size: '', furnished: false, amenities: [], contactPhone: '',
 };
 
@@ -50,7 +53,9 @@ export default function AddEditProperty() {
       const p = res.data.property;
       setForm({
         title: p.title, description: p.description, purpose: p.purpose, propertyType: p.propertyType,
-        price: p.price, location: p.location, address: p.address, bedrooms: p.bedrooms, bathrooms: p.bathrooms,
+        price: p.price, location: p.location,
+        district: p.district || '', sector: p.sector || '', cell: p.cell || '', village: p.village || '',
+        bedrooms: p.bedrooms, bathrooms: p.bathrooms,
         size: p.size, furnished: p.furnished, amenities: p.amenities || [], contactPhone: p.contactPhone,
       });
       setExistingImages(p.images || []);
@@ -179,14 +184,27 @@ export default function AddEditProperty() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input label="Location (neighborhood)" value={form.location} onChange={(e) => update('location', e.target.value)} error={errors.location} />
-          <Input label="Address" value={form.address} onChange={(e) => update('address', e.target.value)} />
+          <Select label="District" value={form.district} onChange={(e) => update('district', e.target.value)}>
+            <option value="">Select district</option>
+            {RWANDA_DISTRICTS.map((group) => (
+              <optgroup key={group.province} label={group.province}>
+                {group.districts.map((d) => <option key={d} value={d}>{d}</option>)}
+              </optgroup>
+            ))}
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Input label="Sector" value={form.sector} onChange={(e) => update('sector', e.target.value)} />
+          <Input label="Cell" value={form.cell} onChange={(e) => update('cell', e.target.value)} />
+          <Input label="Village" value={form.village} onChange={(e) => update('village', e.target.value)} />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Input label="Bedrooms" type="number" min="0" value={form.bedrooms} onChange={(e) => update('bedrooms', e.target.value)} />
           <Input label="Bathrooms" type="number" min="0" value={form.bathrooms} onChange={(e) => update('bathrooms', e.target.value)} />
           <div>
-            <Input label="Contact Phone" value={form.contactPhone} onChange={(e) => update('contactPhone', e.target.value)} error={errors.contactPhone} />
+            <PhoneInput label="Contact Phone" value={form.contactPhone} onChange={(v) => update('contactPhone', v)} error={errors.contactPhone} />
             <p className="mt-1 text-xs text-gray-400">Used for the Call and WhatsApp buttons on this listing.</p>
           </div>
         </div>

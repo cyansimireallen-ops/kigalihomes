@@ -67,10 +67,12 @@ const getDashboardStats = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc  Get all users (search/filter)
+// @desc  Get all users (search/filter). Soft-deleted users are hidden unless
+//        ?deleted=true is passed (used by the admin "Deleted" tab).
 // @route GET /api/admin/users
 const getUsers = asyncHandler(async (req, res) => {
   const filter = { role: { $ne: 'admin' } };
+  filter.isDeleted = req.query.deleted === 'true';
   if (req.query.role) filter.role = req.query.role;
   if (req.query.status === 'active') filter.isActive = true;
   if (req.query.status === 'disabled') filter.isActive = false;
@@ -97,7 +99,9 @@ const getUserById = asyncHandler(async (req, res) => {
   res.json({ success: true, user });
 });
 
-// @desc  Update user (disable/restore, change role between seeker/owner)
+// @desc  Update a user — full profile edit (name/username/email/phone/bio),
+//        disable/enable (isActive), and role changes between seeker/owner.
+//        All fields are optional; only what's sent gets changed.
 // @route PUT /api/admin/users/:id
 const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
@@ -111,12 +115,75 @@ const updateUser = asyncHandler(async (req, res) => {
     throw new Error('Admin accounts cannot be modified here');
   }
 
-  if (req.body.isActive !== undefined) user.isActive = req.body.isActive;
-  if (req.body.role && ['seeker', 'owner'].includes(req.body.role)) {
-    user.role = req.body.role;
+  const { name, username, email, phone, bio, isActive, role } = req.body;
+
+  if (username && username.toLowerCase() !== user.username) {
+    const taken = await User.findOne({ username: username.toLowerCase(), _id: { $ne: user._id } });
+    if (taken) {
+      res.status(409);
+      throw new Error('Username is already taken');
+    }
+    user.username = username.toLowerCase();
   }
 
+  if (email && email.toLowerCase() !== user.email) {
+    const taken = await User.findOne({ email: email.toLowerCase(), _id: { $ne: user._id } });
+    if (taken) {
+      res.status(409);
+      throw new Error('Email is already registered');
+    }
+    user.email = email.toLowerCase();
+  }
+
+  if (name) user.name = name;
+  if (phone) user.phone = phone;
+  if (bio !== undefined) user.bio = bio;
+  if (isActive !== undefined) user.isActive = isActive;
+  if (role && ['seeker', 'owner'].includes(role)) user.role = role;
+
   const updated = await user.save();
+  res.json({ success: true, user: updated.toSafeObject() });
+});
+
+// @desc  Soft-delete a user — hides them from the active user list and blocks
+//        login (isActive is also turned off), but the record is kept and can
+//        be brought back with restoreUser. Their existing listings/messages/
+//        favorites are untouched.
+// @route DELETE /api/admin/users/:id
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  if (user.role === 'admin') {
+    res.status(403);
+    throw new Error('Admin accounts cannot be deleted here');
+  }
+
+  user.isDeleted = true;
+  user.deletedAt = new Date();
+  user.isActive = false;
+  await user.save();
+
+  res.json({ success: true, message: 'User deleted' });
+});
+
+// @desc  Restore a previously soft-deleted user — re-enables login too.
+// @route PUT /api/admin/users/:id/restore
+const restoreUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  user.isDeleted = false;
+  user.deletedAt = null;
+  user.isActive = true;
+  const updated = await user.save();
+
   res.json({ success: true, user: updated.toSafeObject() });
 });
 
@@ -199,6 +266,8 @@ module.exports = {
   getUsers,
   getUserById,
   updateUser,
+  deleteUser,
+  restoreUser,
   getAllProperties,
   adminUpdateProperty,
   adminDeleteProperty,

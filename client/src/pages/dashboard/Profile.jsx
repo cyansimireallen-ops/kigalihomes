@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/Input';
+import PhoneInput from '../../components/PhoneInput';
 import Button from '../../components/Button';
 import { imageUrl } from '../../utils/format';
 
@@ -53,7 +54,7 @@ export default function Profile() {
         <Input label="Full Name" value={form.name} onChange={(e) => update('name', e.target.value)} />
         <Input label="Username" value={form.username} onChange={(e) => update('username', e.target.value)} />
         <Input label="Email" type="email" value={form.email} onChange={(e) => update('email', e.target.value)} />
-        <Input label="Phone" value={form.phone} onChange={(e) => update('phone', e.target.value)} />
+        <PhoneInput label="Phone" value={form.phone} onChange={(v) => update('phone', v)} />
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium text-charcoal">Bio</span>
           <textarea

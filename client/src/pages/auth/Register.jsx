@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/Input';
+import PhoneInput from '../../components/PhoneInput';
 import Button from '../../components/Button';
 
 const perks = [
@@ -106,7 +107,7 @@ export default function Register() {
               <Input label="Username" value={form.username} onChange={(e) => update('username', e.target.value)} error={errors.username} />
             </div>
             <Input label="Email" type="email" value={form.email} onChange={(e) => update('email', e.target.value)} error={errors.email} />
-            <Input label="Phone" value={form.phone} onChange={(e) => update('phone', e.target.value)} error={errors.phone} />
+            <PhoneInput label="Phone" value={form.phone} onChange={(v) => update('phone', v)} error={errors.phone} />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input label="Password" type="password" value={form.password} onChange={(e) => update('password', e.target.value)} error={errors.password} />
               <Input label="Confirm Password" type="password" value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} error={errors.confirmPassword} />

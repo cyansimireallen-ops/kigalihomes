@@ -16,6 +16,8 @@ const userSchema = new mongoose.Schema(
     profileImage: { type: String, default: '' },
     bio: { type: String, default: '', maxlength: 500 },
     isActive: { type: Boolean, default: true },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

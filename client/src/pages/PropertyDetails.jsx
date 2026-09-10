@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Bed, Bath, Ruler, MapPin, Phone, MessageCircle, Heart, BadgeCheck, Flag } from 'lucide-react';
+import { Bed, Bath, Ruler, MapPin, Phone, MessageCircle, MessageSquare, Heart, BadgeCheck, Flag } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -180,12 +180,16 @@ export default function PropertyDetails() {
           <div className="sticky top-24 rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
             <p className="text-xs uppercase tracking-wide text-gray-400">Listed by</p>
             <p className="mt-1 font-display text-lg text-charcoal">{property.owner?.name}</p>
-            <div className="mt-4 space-y-2">
-              <a href={`tel:${property.contactPhone}`}>
-                <Button variant="primary" className="w-full"><Phone size={16} /> Call {property.contactPhone}</Button>
+            <div className="mt-4 flex flex-col gap-4">
+              <a href={`tel:${property.contactPhone}`} className="block">
+                <Button variant="primary" className="w-full">
+                  <Phone size={16} /> Call {property.contactPhone}
+                </Button>
               </a>
-              <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer">
-                <Button variant="secondary" className="w-full">WhatsApp</Button>
+              <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" className="block">
+                <Button variant="secondary" className="w-full">
+                  <MessageSquare size={16} /> WhatsApp
+                </Button>
               </a>
               <Button variant="outline" className="w-full" onClick={() => setMessageOpen(true)}>
                 <MessageCircle size={16} /> Send Message

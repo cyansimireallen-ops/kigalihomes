@@ -4,6 +4,8 @@ const {
   getUsers,
   getUserById,
   updateUser,
+  deleteUser,
+  restoreUser,
   getAllProperties,
   adminUpdateProperty,
   adminDeleteProperty,
@@ -25,6 +27,8 @@ router.get('/users', getUsers);
 router.post('/users', createOwnerOrAgent);
 router.get('/users/:id', getUserById);
 router.put('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
+router.put('/users/:id/restore', restoreUser);
 
 router.get('/properties', getAllProperties);
 router.put('/properties/:id', adminUpdateProperty);

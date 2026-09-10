@@ -95,7 +95,10 @@ const createProperty = asyncHandler(async (req, res) => {
     propertyType,
     price,
     location,
-    address,
+    district,
+    sector,
+    cell,
+    village,
     bedrooms,
     bathrooms,
     size,
@@ -108,6 +111,11 @@ const createProperty = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Please fill in all required property fields');
   }
+
+  // "address" stays as a single human-readable line, composed from the structured
+  // District/Sector/Cell/Village fields, so anywhere that already displays
+  // property.address (e.g. the property details page) keeps working unchanged.
+  const address = [village, cell, sector, district].filter(Boolean).join(', ');
 
   const images = req.uploadedImages || [];
   const video = req.uploadedVideo || '';
@@ -125,6 +133,10 @@ const createProperty = asyncHandler(async (req, res) => {
     price,
     location,
     address,
+    district: district || '',
+    sector: sector || '',
+    cell: cell || '',
+    village: village || '',
     bedrooms: bedrooms || 0,
     bathrooms: bathrooms || 0,
     size: size || 0,
@@ -168,7 +180,10 @@ const updateProperty = asyncHandler(async (req, res) => {
     'propertyType',
     'price',
     'location',
-    'address',
+    'district',
+    'sector',
+    'cell',
+    'village',
     'bedrooms',
     'bathrooms',
     'size',
@@ -187,6 +202,12 @@ const updateProperty = asyncHandler(async (req, res) => {
       }
     }
   });
+
+  if (['district', 'sector', 'cell', 'village'].some((f) => req.body[f] !== undefined)) {
+    property.address = [property.village, property.cell, property.sector, property.district]
+      .filter(Boolean)
+      .join(', ');
+  }
 
   // A non-admin editing their listing resets it back to pending review.
   // Admins editing (their own or anyone's) keep it published — they're the review authority.
