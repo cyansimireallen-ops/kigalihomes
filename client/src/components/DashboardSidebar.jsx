@@ -22,9 +22,15 @@ const ownerLinks = [
   { to: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
-export default function DashboardSidebar() {
+// Shared with DashboardMobileTabs so the desktop sidebar and the mobile tab bar
+// never drift out of sync with each other.
+export function useDashboardLinks() {
   const { user } = useAuth();
-  const links = user?.role === 'seeker' ? seekerLinks : ownerLinks;
+  return user?.role === 'seeker' ? seekerLinks : ownerLinks;
+}
+
+export default function DashboardSidebar() {
+  const links = useDashboardLinks();
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-gray-100 bg-white lg:block">
