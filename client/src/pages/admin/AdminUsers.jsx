@@ -6,6 +6,7 @@ import Badge from '../../components/Badge';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import PhoneInput from '../../components/PhoneInput';
 import Select from '../../components/Select';
 import { RowSkeleton } from '../../components/Skeleton';
 import EmptyState from '../../components/EmptyState';
@@ -321,7 +322,7 @@ export default function AdminUsers() {
             <Input label="Username" value={newUser.username} onChange={(e) => updateNewUser('username', e.target.value)} error={newUserErrors.username} />
           </div>
           <Input label="Email" type="email" value={newUser.email} onChange={(e) => updateNewUser('email', e.target.value)} error={newUserErrors.email} />
-          <Input label="Phone" value={newUser.phone} onChange={(e) => updateNewUser('phone', e.target.value)} error={newUserErrors.phone} />
+          <PhoneInput label="Phone" value={newUser.phone} onChange={(v) => updateNewUser('phone', v)} error={newUserErrors.phone} />
           <Input label="Temporary Password" type="password" value={newUser.password} onChange={(e) => updateNewUser('password', e.target.value)} error={newUserErrors.password} />
           <Select label="Account Type" value={newUser.role} onChange={(e) => updateNewUser('role', e.target.value)}>
             <option value="owner">Owner / Agent</option>
@@ -349,7 +350,7 @@ export default function AdminUsers() {
               <Input label="Username" value={editUser.username} onChange={(e) => updateEditField('username', e.target.value)} error={editErrors.username} />
             </div>
             <Input label="Email" type="email" value={editUser.email} onChange={(e) => updateEditField('email', e.target.value)} error={editErrors.email} />
-            <Input label="Phone" value={editUser.phone} onChange={(e) => updateEditField('phone', e.target.value)} error={editErrors.phone} />
+            <PhoneInput label="Phone" value={editUser.phone} onChange={(v) => updateEditField('phone', v)} error={editErrors.phone} />
             <label className="block">
               <span className="mb-1.5 block text-sm font-medium text-charcoal">Bio</span>
               <textarea
