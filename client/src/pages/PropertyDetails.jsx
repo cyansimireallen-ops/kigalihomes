@@ -180,7 +180,7 @@ export default function PropertyDetails() {
           <div className="sticky top-24 rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
             <p className="text-xs uppercase tracking-wide text-gray-400">Listed by</p>
             <p className="mt-1 font-display text-lg text-charcoal">{property.owner?.name}</p>
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 flex flex-col gap-4">
               <a href={`tel:${property.contactPhone}`} className="block">
                 <Button variant="primary" className="w-full">
                   <Phone size={16} /> Call {property.contactPhone}
