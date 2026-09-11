@@ -1,23 +1,5 @@
 import { useEffect, useState } from 'react';
-
-// Common codes for KigaliHomes' primary market plus its neighbors and a few
-// widely-used others. Kept short and relevant rather than all ~195 countries,
-// since a shorter list is faster to use correctly.
-export const COUNTRY_CODES = [
-  { code: '+250', country: 'Rwanda', flag: '🇷🇼' },
-  { code: '+256', country: 'Uganda', flag: '🇺🇬' },
-  { code: '+254', country: 'Kenya', flag: '🇰🇪' },
-  { code: '+255', country: 'Tanzania', flag: '🇹🇿' },
-  { code: '+257', country: 'Burundi', flag: '🇧🇮' },
-  { code: '+243', country: 'DR Congo', flag: '🇨🇩' },
-  { code: '+1', country: 'US/Canada', flag: '🇺🇸' },
-  { code: '+44', country: 'UK', flag: '🇬🇧' },
-  { code: '+33', country: 'France', flag: '🇫🇷' },
-  { code: '+32', country: 'Belgium', flag: '🇧🇪' },
-  { code: '+971', country: 'UAE', flag: '🇦🇪' },
-  { code: '+86', country: 'China', flag: '🇨🇳' },
-  { code: '+91', country: 'India', flag: '🇮🇳' },
-];
+import { COUNTRY_CODES } from '../utils/countryCodes';
 
 const DEFAULT_CODE = '+250';
 
@@ -25,7 +7,10 @@ const DEFAULT_CODE = '+250';
 // Falls back to the default code if the value doesn't start with a known one, or is empty/new.
 function splitValue(value) {
   if (!value) return { code: DEFAULT_CODE, local: '' };
-  const match = COUNTRY_CODES.find((c) => value.startsWith(c.code));
+  // Prefer the LONGEST matching code (e.g. Jamaica's +1876 over plain +1),
+  // so overlapping prefixes among Caribbean/North American codes resolve correctly.
+  const matches = COUNTRY_CODES.filter((c) => value.startsWith(c.code));
+  const match = matches.sort((a, b) => b.code.length - a.code.length)[0];
   if (match) return { code: match.code, local: value.slice(match.code.length).trim() };
   // Unrecognized prefix (e.g. old data saved without a code) — keep it all as the local part
   // rather than silently dropping digits, and default the code selector to Rwanda.
