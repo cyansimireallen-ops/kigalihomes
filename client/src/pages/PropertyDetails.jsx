@@ -96,7 +96,19 @@ export default function PropertyDetails() {
   if (!property) return <div className="py-24 text-center text-gray-500">Property not found.</div>;
 
   const images = property.images?.length ? property.images : [null];
-  const waNumber = property.contactPhone?.replace(/[^0-9]/g, '');
+  // wa.me needs the FULL international number, digits only, no "+". Listings created
+  // before phone numbers required a country code may have stored a bare local Rwandan
+  // number (e.g. "0795611238" or "795611238") — detect that shape and default it to
+  // Rwanda (+250) instead of sending WhatsApp an incomplete number that won't resolve.
+  const toWhatsAppNumber = (phone) => {
+    if (!phone) return '';
+    const digits = phone.replace(/[^0-9]/g, '');
+    if (phone.trim().startsWith('+')) return digits; // already has a real country code
+    if (digits.length === 10 && digits.startsWith('0')) return `250${digits.slice(1)}`; // e.g. 0795611238
+    if (digits.length === 9) return `250${digits}`; // e.g. 795611238
+    return digits; // already looks like it includes a country code some other way
+  };
+  const waNumber = toWhatsAppNumber(property.contactPhone);
 
   // Copies the number to the clipboard as a fallback for when tapping "Call" doesn't
   // open a dialer reliably (varies by phone/browser) — the number is always visible on
