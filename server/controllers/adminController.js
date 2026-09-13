@@ -187,6 +187,35 @@ const restoreUser = asyncHandler(async (req, res) => {
   res.json({ success: true, user: updated.toSafeObject() });
 });
 
+// @desc  Permanently and irreversibly remove a user record from the database.
+//        Only allowed on accounts already sitting in the "Deleted" tab
+//        (isDeleted: true) — this is the recycle-bin's "empty" action, a
+//        deliberate second step after the reversible soft-delete, not a
+//        shortcut for it. Their past listings/messages/favorites/reports are
+//        left as-is (not cascade-deleted) so other users' data/history isn't
+//        disturbed; the listings simply keep pointing at a no-longer-existing owner.
+// @route DELETE /api/admin/users/:id/permanent
+const permanentlyDeleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  if (user.role === 'admin') {
+    res.status(403);
+    throw new Error('Admin accounts cannot be deleted here');
+  }
+
+  if (!user.isDeleted) {
+    res.status(400);
+    throw new Error('Delete this user first, then permanently delete it from the Deleted tab');
+  }
+
+  await user.deleteOne();
+  res.json({ success: true, message: 'User permanently deleted' });
+});
+
 // @desc  Get all properties (admin - any status)
 // @route GET /api/admin/properties
 const getAllProperties = asyncHandler(async (req, res) => {
@@ -268,6 +297,7 @@ module.exports = {
   updateUser,
   deleteUser,
   restoreUser,
+  permanentlyDeleteUser,
   getAllProperties,
   adminUpdateProperty,
   adminDeleteProperty,
