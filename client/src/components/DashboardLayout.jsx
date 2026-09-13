@@ -13,12 +13,13 @@ export default function DashboardLayout() {
 
       {/* Mobile-only bar to open the dashboard menu (Messages, Profile, Settings, etc.) —
           the sidebar itself is hidden below lg, same pattern as the admin panel. */}
-      <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5 lg:hidden">
+      <div className="flex items-center border-b border-gray-100 px-4 py-2.5 lg:hidden">
         <button
           onClick={() => setOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-charcoal hover:bg-gray-50"
+          aria-label="Open menu"
+          className="rounded-lg border border-gray-200 p-2 text-charcoal hover:bg-gray-50"
         >
-          <Menu size={16} /> Menu
+          <Menu size={18} />
         </button>
       </div>
 
