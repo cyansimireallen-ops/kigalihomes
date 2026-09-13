@@ -6,6 +6,7 @@ const {
   updateUser,
   deleteUser,
   restoreUser,
+  permanentlyDeleteUser,
   getAllProperties,
   adminUpdateProperty,
   adminDeleteProperty,
@@ -29,6 +30,7 @@ router.get('/users/:id', getUserById);
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
 router.put('/users/:id/restore', restoreUser);
+router.delete('/users/:id/permanent', permanentlyDeleteUser);
 
 router.get('/properties', getAllProperties);
 router.put('/properties/:id', adminUpdateProperty);
