@@ -208,18 +208,18 @@ export default function PropertyDetails() {
           <div className="sticky top-24 rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
             <p className="text-xs uppercase tracking-wide text-gray-400">Listed by</p>
             <p className="mt-1 font-display text-lg text-charcoal">{property.owner?.name}</p>
-            <div className="mt-4 flex flex-col gap-4">
+            <div className="mt-4 flex flex-col gap-3">
               <Button href={`tel:${property.contactPhone}`} variant="primary" className="w-full" onClick={handleCopyPhone}>
                 <Phone size={16} /> Call {property.contactPhone}
               </Button>
               <button
                 type="button"
                 onClick={handleCopyPhone}
-                className="flex items-center justify-center gap-1.5 text-xs font-medium text-gray-500 hover:text-forest-700"
+                className="-mt-1.5 flex items-center justify-center gap-1.5 text-xs font-medium text-gray-500 hover:text-forest-700"
               >
                 <Copy size={13} /> Copy number to clipboard
               </button>
-              <Button href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" variant="secondary" className="w-full">
+              <Button href={`https://wa.me/${waNumber}`} variant="secondary" className="w-full">
                 <MessageSquare size={16} /> WhatsApp
               </Button>
               <Button variant="outline" className="w-full" onClick={() => setMessageOpen(true)}>
