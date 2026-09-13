@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Bed, Bath, Ruler, MapPin, Phone, MessageCircle, MessageSquare, Heart, BadgeCheck, Flag } from 'lucide-react';
+import { Bed, Bath, Ruler, MapPin, Phone, MessageCircle, MessageSquare, Heart, BadgeCheck, Flag, Copy } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -98,6 +98,34 @@ export default function PropertyDetails() {
   const images = property.images?.length ? property.images : [null];
   const waNumber = property.contactPhone?.replace(/[^0-9]/g, '');
 
+  // Copies the number to the clipboard as a fallback for when tapping "Call" doesn't
+  // open a dialer reliably (varies by phone/browser) — the number is always visible on
+  // the button itself too, and this puts it one paste away from any calling app.
+  const handleCopyPhone = () => {
+    const number = property.contactPhone;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(number).then(
+        () => toast.success('Phone number copied'),
+        () => toast.error('Could not copy — number is ' + number)
+      );
+    } else {
+      // Older/insecure-context browsers without navigator.clipboard support.
+      const textarea = document.createElement('textarea');
+      textarea.value = number;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        toast.success('Phone number copied');
+      } catch {
+        toast.error('Could not copy — number is ' + number);
+      }
+      document.body.removeChild(textarea);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -181,16 +209,19 @@ export default function PropertyDetails() {
             <p className="text-xs uppercase tracking-wide text-gray-400">Listed by</p>
             <p className="mt-1 font-display text-lg text-charcoal">{property.owner?.name}</p>
             <div className="mt-4 flex flex-col gap-4">
-              <a href={`tel:${property.contactPhone}`} className="block">
-                <Button variant="primary" className="w-full">
-                  <Phone size={16} /> Call {property.contactPhone}
-                </Button>
-              </a>
-              <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" className="block">
-                <Button variant="secondary" className="w-full">
-                  <MessageSquare size={16} /> WhatsApp
-                </Button>
-              </a>
+              <Button href={`tel:${property.contactPhone}`} variant="primary" className="w-full" onClick={handleCopyPhone}>
+                <Phone size={16} /> Call {property.contactPhone}
+              </Button>
+              <button
+                type="button"
+                onClick={handleCopyPhone}
+                className="flex items-center justify-center gap-1.5 text-xs font-medium text-gray-500 hover:text-forest-700"
+              >
+                <Copy size={13} /> Copy number to clipboard
+              </button>
+              <Button href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" variant="secondary" className="w-full">
+                <MessageSquare size={16} /> WhatsApp
+              </Button>
               <Button variant="outline" className="w-full" onClick={() => setMessageOpen(true)}>
                 <MessageCircle size={16} /> Send Message
               </Button>
