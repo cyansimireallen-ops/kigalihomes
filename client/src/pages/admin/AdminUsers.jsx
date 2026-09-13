@@ -31,6 +31,7 @@ export default function AdminUsers() {
   const [saving, setSaving] = useState(false);
 
   const [confirmDelete, setConfirmDelete] = useState(null); // user pending delete confirmation
+  const [confirmPermanentDelete, setConfirmPermanentDelete] = useState(null); // user pending permanent-delete confirmation
 
   const load = () => {
     setLoading(true);
@@ -82,6 +83,18 @@ export default function AdminUsers() {
       setUsers((list) => list.filter((u) => u._id !== user._id));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to restore user');
+    }
+  };
+
+  const handlePermanentDelete = async () => {
+    if (!confirmPermanentDelete) return;
+    try {
+      await api.delete(`/admin/users/${confirmPermanentDelete._id}/permanent`);
+      toast.success('User permanently deleted');
+      setUsers((list) => list.filter((u) => u._id !== confirmPermanentDelete._id));
+      setConfirmPermanentDelete(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to permanently delete user');
     }
   };
 
@@ -244,12 +257,20 @@ export default function AdminUsers() {
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1.5">
                       {tab === 'deleted' ? (
-                        <button
-                          onClick={() => handleRestore(u)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-forest-200 px-2.5 py-1 text-xs text-forest-700 hover:bg-forest-50"
-                        >
-                          <RotateCcw size={13} /> Restore
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleRestore(u)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-forest-200 px-2.5 py-1 text-xs text-forest-700 hover:bg-forest-50"
+                          >
+                            <RotateCcw size={13} /> Restore
+                          </button>
+                          <button
+                            onClick={() => setConfirmPermanentDelete(u)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 size={13} /> Delete Permanently
+                          </button>
+                        </>
                       ) : (
                         <>
                           <button
@@ -385,6 +406,28 @@ export default function AdminUsers() {
             <span className="font-medium text-charcoal">{confirmDelete.name}</span> will be moved to the
             Deleted tab and immediately blocked from logging in. Their listings, messages and favorites are
             kept — you can restore this account at any time from the Deleted tab.
+          </p>
+        )}
+      </Modal>
+
+      {/* Permanent delete confirmation */}
+      <Modal
+        open={!!confirmPermanentDelete}
+        onClose={() => setConfirmPermanentDelete(null)}
+        title="Permanently delete this user?"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmPermanentDelete(null)}>Cancel</Button>
+            <Button variant="danger" onClick={handlePermanentDelete}>Delete Permanently</Button>
+          </>
+        }
+      >
+        {confirmPermanentDelete && (
+          <p className="text-sm text-gray-600">
+            <span className="font-medium text-charcoal">{confirmPermanentDelete.name}</span> will be
+            removed from the database <span className="font-semibold text-red-600">permanently — this cannot
+            be undone</span>. Their past listings, messages and favorites are kept as historical records,
+            but this account can no longer be restored.
           </p>
         )}
       </Modal>
