@@ -12,6 +12,24 @@ import { formatPrice, imageUrl } from '../../utils/format';
 
 const statusTone = { pending: 'gold', approved: 'green', rejected: 'red', sold: 'gray', rented: 'gray' };
 
+function PropertyActions({ p, onUpdate, onDeleteRequest }) {
+  return (
+    <>
+      {p.status === 'pending' && (
+        <>
+          <button title="Approve" onClick={() => onUpdate(p, { status: 'approved' }, 'Approved')} className="rounded-lg border border-forest-200 p-1.5 text-forest-700 hover:bg-forest-50"><Check size={14} /></button>
+          <button title="Reject" onClick={() => onUpdate(p, { status: 'rejected' }, 'Rejected')} className="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50"><XIcon size={14} /></button>
+        </>
+      )}
+      <button title={p.isFeatured ? 'Remove featured' : 'Mark featured'} onClick={() => onUpdate(p, { isFeatured: !p.isFeatured }, p.isFeatured ? 'Removed from featured' : 'Marked as featured')} className="rounded-lg border border-gold-200 p-1.5 text-gold-600 hover:bg-gold-50"><Star size={14} fill={p.isFeatured ? '#c98d21' : 'none'} /></button>
+      <button title={p.isVerified ? 'Remove verification' : 'Verify'} onClick={() => onUpdate(p, { isVerified: !p.isVerified }, p.isVerified ? 'Verification removed' : 'Marked as verified')} className="rounded-lg border border-forest-200 p-1.5 text-forest-700 hover:bg-forest-50"><BadgeCheck size={14} /></button>
+      <button title={p.isFraud ? 'Unmark fraud' : 'Mark as fraud'} onClick={() => onUpdate(p, { isFraud: !p.isFraud }, p.isFraud ? 'Fraud flag removed' : 'Marked as fraud')} className="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50"><Flag size={14} /></button>
+      <Link to={`/admin/properties/${p._id}/edit`} title="Edit" className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50"><Pencil size={14} /></Link>
+      <button title="Delete" onClick={() => onDeleteRequest(p)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50"><Trash2 size={14} /></button>
+    </>
+  );
+}
+
 export default function AdminProperties() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +78,7 @@ export default function AdminProperties() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl text-charcoal">Property Management</h1>
-        <Link to="/admin/properties/new"><Button><PlusCircle size={16} /> Add Property</Button></Link>
+        <Button to="/admin/properties/new"><PlusCircle size={16} /> Add Property</Button>
       </div>
 
       <form onSubmit={handleSearch} className="mt-5 flex flex-wrap gap-2">
@@ -84,61 +102,81 @@ export default function AdminProperties() {
         <Button type="submit" variant="outline">Search</Button>
       </form>
 
-      <div className="mt-5 overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
+      <div className="mt-5 rounded-2xl border border-gray-100 bg-white shadow-sm">
         {loading ? (
           <div className="space-y-2 p-4"><RowSkeleton /><RowSkeleton /><RowSkeleton /></div>
         ) : properties.length === 0 ? (
           <div className="p-4"><EmptyState title="No properties found" /></div>
         ) : (
-          <table className="w-full min-w-[900px] text-sm">
-            <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
-              <tr>
-                <th className="px-4 py-3">Property</th>
-                <th className="px-4 py-3">Owner</th>
-                <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+          <>
+            {/* Desktop / tablet: table */}
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[900px] text-sm">
+                <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                  <tr>
+                    <th className="px-4 py-3">Property</th>
+                    <th className="px-4 py-3">Owner</th>
+                    <th className="px-4 py-3">Price</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {properties.map((p) => (
+                    <tr key={p._id}>
+                      <td className="flex items-center gap-3 px-4 py-3">
+                        <img src={imageUrl(p.images?.[0])} className="h-10 w-14 rounded-lg object-cover" alt="" />
+                        <div>
+                          <p className="font-medium text-charcoal">{p.title}</p>
+                          <p className="text-xs text-gray-400">{p.location}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500">{p.owner?.name}</td>
+                      <td className="px-4 py-3 text-gray-500">{formatPrice(p.price, p.purpose)}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Badge tone={statusTone[p.status]}>{p.status}</Badge>
+                          {p.isFeatured && <Badge tone="gold">Featured</Badge>}
+                          {p.isVerified && <Badge tone="green">Verified</Badge>}
+                          {p.isFraud && <Badge tone="red">Fraud</Badge>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap justify-end gap-1.5">
+                          <PropertyActions p={p} onUpdate={updateProperty} onDeleteRequest={setConfirmDelete} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile: stacked cards */}
+            <ul className="divide-y divide-gray-100 md:hidden">
               {properties.map((p) => (
-                <tr key={p._id}>
-                  <td className="flex items-center gap-3 px-4 py-3">
-                    <img src={imageUrl(p.images?.[0])} className="h-10 w-14 rounded-lg object-cover" alt="" />
-                    <div>
-                      <p className="font-medium text-charcoal">{p.title}</p>
+                <li key={p._id} className="p-4">
+                  <div className="flex gap-3">
+                    <img src={imageUrl(p.images?.[0])} className="h-14 w-20 shrink-0 rounded-lg object-cover" alt="" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-charcoal">{p.title}</p>
                       <p className="text-xs text-gray-400">{p.location}</p>
+                      <p className="mt-0.5 text-xs text-gray-500">{p.owner?.name} · {formatPrice(p.price, p.purpose)}</p>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">{p.owner?.name}</td>
-                  <td className="px-4 py-3 text-gray-500">{formatPrice(p.price, p.purpose)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Badge tone={statusTone[p.status]}>{p.status}</Badge>
-                      {p.isFeatured && <Badge tone="gold">Featured</Badge>}
-                      {p.isVerified && <Badge tone="green">Verified</Badge>}
-                      {p.isFraud && <Badge tone="red">Fraud</Badge>}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap justify-end gap-1.5">
-                      {p.status === 'pending' && (
-                        <>
-                          <button title="Approve" onClick={() => updateProperty(p, { status: 'approved' }, 'Approved')} className="rounded-lg border border-forest-200 p-1.5 text-forest-700 hover:bg-forest-50"><Check size={14} /></button>
-                          <button title="Reject" onClick={() => updateProperty(p, { status: 'rejected' }, 'Rejected')} className="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50"><XIcon size={14} /></button>
-                        </>
-                      )}
-                      <button title={p.isFeatured ? 'Remove featured' : 'Mark featured'} onClick={() => updateProperty(p, { isFeatured: !p.isFeatured }, p.isFeatured ? 'Removed from featured' : 'Marked as featured')} className="rounded-lg border border-gold-200 p-1.5 text-gold-600 hover:bg-gold-50"><Star size={14} fill={p.isFeatured ? '#c98d21' : 'none'} /></button>
-                      <button title={p.isVerified ? 'Remove verification' : 'Verify'} onClick={() => updateProperty(p, { isVerified: !p.isVerified }, p.isVerified ? 'Verification removed' : 'Marked as verified')} className="rounded-lg border border-forest-200 p-1.5 text-forest-700 hover:bg-forest-50"><BadgeCheck size={14} /></button>
-                      <button title={p.isFraud ? 'Unmark fraud' : 'Mark as fraud'} onClick={() => updateProperty(p, { isFraud: !p.isFraud }, p.isFraud ? 'Fraud flag removed' : 'Marked as fraud')} className="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50"><Flag size={14} /></button>
-                      <Link to={`/admin/properties/${p._id}/edit`} title="Edit" className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50"><Pencil size={14} /></Link>
-                      <button title="Delete" onClick={() => setConfirmDelete(p)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50"><Trash2 size={14} /></button>
-                    </div>
-                  </td>
-                </tr>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <Badge tone={statusTone[p.status]}>{p.status}</Badge>
+                    {p.isFeatured && <Badge tone="gold">Featured</Badge>}
+                    {p.isVerified && <Badge tone="green">Verified</Badge>}
+                    {p.isFraud && <Badge tone="red">Fraud</Badge>}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    <PropertyActions p={p} onUpdate={updateProperty} onDeleteRequest={setConfirmDelete} />
+                  </div>
+                </li>
               ))}
-            </tbody>
-          </table>
+            </ul>
+          </>
         )}
       </div>
 
