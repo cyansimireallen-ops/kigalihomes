@@ -110,6 +110,15 @@ export default function PropertyDetails() {
   };
   const waNumber = toWhatsAppNumber(property.contactPhone);
 
+  // If wa.me gets a broken/incomplete number, WhatsApp's own page shows a generic
+  // error with no obvious cause. Catch that here first so the reason is clear.
+  const handleWhatsAppClick = (e) => {
+    if (!waNumber || waNumber.length < 10) {
+      e.preventDefault();
+      toast.error('This listing has no valid WhatsApp number on file');
+    }
+  };
+
   // Copies the number to the clipboard as a fallback for when tapping "Call" doesn't
   // open a dialer reliably (varies by phone/browser) — the number is always visible on
   // the button itself too, and this puts it one paste away from any calling app.
@@ -231,7 +240,7 @@ export default function PropertyDetails() {
               >
                 <Copy size={13} /> Copy number to clipboard
               </button>
-              <Button href={`https://wa.me/${waNumber}`} variant="secondary" className="w-full">
+              <Button href={`https://wa.me/${waNumber}`} variant="secondary" className="w-full" onClick={handleWhatsAppClick}>
                 <MessageSquare size={16} /> WhatsApp
               </Button>
               <Button variant="outline" className="w-full" onClick={() => setMessageOpen(true)}>
