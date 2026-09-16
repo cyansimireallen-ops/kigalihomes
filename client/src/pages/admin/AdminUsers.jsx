@@ -13,6 +13,54 @@ import EmptyState from '../../components/EmptyState';
 
 const emptyNewUser = { name: '', username: '', email: '', phone: '', password: '', role: 'owner' };
 
+function UserActions({ user: u, tab, onEdit, onToggle, onDelete, onRestore, onPermanentDelete }) {
+  if (tab === 'deleted') {
+    return (
+      <>
+        <button
+          onClick={() => onRestore(u)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-forest-200 px-2.5 py-1 text-xs text-forest-700 hover:bg-forest-50"
+        >
+          <RotateCcw size={13} /> Restore
+        </button>
+        <button
+          onClick={() => onPermanentDelete(u)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50"
+        >
+          <Trash2 size={13} /> Delete Permanently
+        </button>
+      </>
+    );
+  }
+  return (
+    <>
+      <button
+        onClick={() => onEdit(u)}
+        title="Edit"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-50"
+      >
+        <Pencil size={13} /> Edit
+      </button>
+      <button
+        onClick={() => onToggle(u)}
+        title={u.isActive ? 'Disable' : 'Enable'}
+        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-colors ${
+          u.isActive ? 'border-gold-200 text-gold-700 hover:bg-gold-50' : 'border-forest-200 text-forest-700 hover:bg-forest-50'
+        }`}
+      >
+        {u.isActive ? <><Ban size={13} /> Disable</> : <><RotateCcw size={13} /> Enable</>}
+      </button>
+      <button
+        onClick={() => onDelete(u)}
+        title="Delete"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50"
+      >
+        <Trash2 size={13} /> Delete
+      </button>
+    </>
+  );
+}
+
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -219,7 +267,7 @@ export default function AdminUsers() {
         <Button type="submit" variant="outline">Search</Button>
       </form>
 
-      <div className="mt-5 overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
+      <div className="mt-5 rounded-2xl border border-gray-100 bg-white shadow-sm">
         {loading ? (
           <div className="space-y-2 p-4"><RowSkeleton /><RowSkeleton /><RowSkeleton /></div>
         ) : users.length === 0 ? (
@@ -227,83 +275,90 @@ export default function AdminUsers() {
             <EmptyState title={tab === 'deleted' ? 'No deleted users' : 'No users found'} />
           </div>
         ) : (
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
-              <tr>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">{tab === 'deleted' ? 'Deleted' : 'Joined'}</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+          <>
+            {/* Desktop / tablet: table */}
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[760px] text-sm">
+                <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                  <tr>
+                    <th className="px-4 py-3">Name</th>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">{tab === 'deleted' ? 'Deleted' : 'Joined'}</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {users.map((u) => (
+                    <tr key={u._id} className="hover:bg-gray-50/60">
+                      <td className="cursor-pointer px-4 py-3 font-medium text-charcoal" onClick={() => setSelected(u)}>{u.name}</td>
+                      <td className="px-4 py-3 text-gray-500">{u.email}</td>
+                      <td className="px-4 py-3 capitalize text-gray-500">{u.role}</td>
+                      <td className="px-4 py-3">
+                        {tab === 'deleted' ? (
+                          <Badge tone="red">Deleted</Badge>
+                        ) : (
+                          <Badge tone={u.isActive ? 'green' : 'red'}>{u.isActive ? 'Active' : 'Disabled'}</Badge>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-gray-400">
+                        {new Date(tab === 'deleted' ? u.deletedAt : u.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-1.5">
+                          <UserActions
+                            user={u}
+                            tab={tab}
+                            onEdit={openEdit}
+                            onToggle={toggleStatus}
+                            onDelete={setConfirmDelete}
+                            onRestore={handleRestore}
+                            onPermanentDelete={setConfirmPermanentDelete}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile: stacked cards */}
+            <ul className="divide-y divide-gray-100 md:hidden">
               {users.map((u) => (
-                <tr key={u._id} className="hover:bg-gray-50/60">
-                  <td className="cursor-pointer px-4 py-3 font-medium text-charcoal" onClick={() => setSelected(u)}>{u.name}</td>
-                  <td className="px-4 py-3 text-gray-500">{u.email}</td>
-                  <td className="px-4 py-3 capitalize text-gray-500">{u.role}</td>
-                  <td className="px-4 py-3">
+                <li key={u._id} className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <button onClick={() => setSelected(u)} className="text-left">
+                      <p className="font-medium text-charcoal">{u.name}</p>
+                      <p className="text-xs text-gray-500">{u.email}</p>
+                    </button>
                     {tab === 'deleted' ? (
                       <Badge tone="red">Deleted</Badge>
                     ) : (
                       <Badge tone={u.isActive ? 'green' : 'red'}>{u.isActive ? 'Active' : 'Disabled'}</Badge>
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-gray-400">
-                    {new Date(tab === 'deleted' ? u.deletedAt : u.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-1.5">
-                      {tab === 'deleted' ? (
-                        <>
-                          <button
-                            onClick={() => handleRestore(u)}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-forest-200 px-2.5 py-1 text-xs text-forest-700 hover:bg-forest-50"
-                          >
-                            <RotateCcw size={13} /> Restore
-                          </button>
-                          <button
-                            onClick={() => setConfirmPermanentDelete(u)}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 size={13} /> Delete Permanently
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => openEdit(u)}
-                            title="Edit"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-50"
-                          >
-                            <Pencil size={13} /> Edit
-                          </button>
-                          <button
-                            onClick={() => toggleStatus(u)}
-                            title={u.isActive ? 'Disable' : 'Enable'}
-                            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-colors ${
-                              u.isActive ? 'border-gold-200 text-gold-700 hover:bg-gold-50' : 'border-forest-200 text-forest-700 hover:bg-forest-50'
-                            }`}
-                          >
-                            {u.isActive ? <><Ban size={13} /> Disable</> : <><RotateCcw size={13} /> Enable</>}
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(u)}
-                            title="Delete"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 size={13} /> Delete
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-400">
+                    <span className="capitalize">{u.role}</span>
+                    <span>·</span>
+                    <span>{new Date(tab === 'deleted' ? u.deletedAt : u.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    <UserActions
+                      user={u}
+                      tab={tab}
+                      onEdit={openEdit}
+                      onToggle={toggleStatus}
+                      onDelete={setConfirmDelete}
+                      onRestore={handleRestore}
+                      onPermanentDelete={setConfirmPermanentDelete}
+                    />
+                  </div>
+                </li>
               ))}
-            </tbody>
-          </table>
+            </ul>
+          </>
         )}
       </div>
 
