@@ -8,8 +8,6 @@ import { ProtectedRoute, AdminRoute, OwnerRoute } from './components/ProtectedRo
 import Home from './pages/Home';
 import Properties from './pages/Properties';
 import PropertyDetails from './pages/PropertyDetails';
-import Vehicles from './pages/Vehicles';
-import VehicleDetails from './pages/VehicleDetails';
 import Rent from './pages/Rent';
 import Buy from './pages/Buy';
 import About from './pages/About';
@@ -26,8 +24,6 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import DashboardHome from './pages/dashboard/DashboardHome';
 import MyListings from './pages/dashboard/MyListings';
 import AddEditProperty from './pages/dashboard/AddEditProperty';
-import MyVehicles from './pages/dashboard/MyVehicles';
-import AddEditVehicle from './pages/dashboard/AddEditVehicle';
 import Messages from './pages/dashboard/Messages';
 import Profile from './pages/dashboard/Profile';
 import Settings from './pages/dashboard/Settings';
@@ -37,7 +33,6 @@ import AdminRegister from './pages/admin/AdminRegister';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminProperties from './pages/admin/AdminProperties';
-import AdminVehicles from './pages/admin/AdminVehicles';
 import AdminReports from './pages/admin/AdminReports';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminContent from './pages/admin/AdminContent';
@@ -65,9 +60,6 @@ export default function App() {
         <Route path="properties" element={<AdminProperties />} />
         <Route path="properties/new" element={<AddEditProperty />} />
         <Route path="properties/:id/edit" element={<AddEditProperty />} />
-        <Route path="vehicles" element={<AdminVehicles />} />
-        <Route path="vehicles/new" element={<AddEditVehicle />} />
-        <Route path="vehicles/:id/edit" element={<AddEditVehicle />} />
         <Route path="reports" element={<AdminReports />} />
         <Route path="content" element={<AdminContent />} />
         <Route path="messages" element={<Messages />} />
@@ -89,9 +81,6 @@ export default function App() {
         <Route path="listings" element={<OwnerRoute><MyListings /></OwnerRoute>} />
         <Route path="listings/new" element={<OwnerRoute><AddEditProperty /></OwnerRoute>} />
         <Route path="listings/:id/edit" element={<OwnerRoute><AddEditProperty /></OwnerRoute>} />
-        <Route path="vehicles" element={<OwnerRoute><MyVehicles /></OwnerRoute>} />
-        <Route path="vehicles/new" element={<OwnerRoute><AddEditVehicle /></OwnerRoute>} />
-        <Route path="vehicles/:id/edit" element={<OwnerRoute><AddEditVehicle /></OwnerRoute>} />
         <Route path="messages" element={<Messages />} />
         <Route path="profile" element={<Profile />} />
         <Route path="settings" element={<Settings />} />
@@ -102,8 +91,6 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/properties" element={<Properties />} />
         <Route path="/properties/:id" element={<PropertyDetails />} />
-        <Route path="/vehicles" element={<Vehicles />} />
-        <Route path="/vehicles/:id" element={<VehicleDetails />} />
         <Route path="/rent" element={<Rent />} />
         <Route path="/buy" element={<Buy />} />
         <Route path="/about" element={<About />} />
