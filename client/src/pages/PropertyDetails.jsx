@@ -25,14 +25,13 @@ export default function PropertyDetails() {
   const { user } = useAuth();
   const [property, setProperty] = useState(null);
   const [similar, setSimilar] = useState([]);
-  const [activeImage, setActiveImage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState(0);
   const [messageOpen, setMessageOpen] = useState(false);
-  const [reportOpen, setReportOpen] = useState(false);
   const [messageText, setMessageText] = useState('');
+  const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('fake');
-  const [reportDesc, setReportDesc] = useState('');
-  const [sending, setSending] = useState(false);
+  const [reportDescription, setReportDescription] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -40,53 +39,42 @@ export default function PropertyDetails() {
       .get(`/properties/${id}`)
       .then((res) => {
         setProperty(res.data.property);
-        setSimilar(res.data.similar);
+        setSimilar(res.data.similar || []);
         setActiveImage(0);
       })
-      .catch(() => toast.error('Property not found'))
       .finally(() => setLoading(false));
   }, [id]);
 
-  const handleSendMessage = async () => {
-    if (!user) return toast.error('Log in to contact the owner');
-    if (!messageText.trim()) return;
-    setSending(true);
+  const handleSave = async () => {
+    if (!user) return toast.error('Log in to save properties');
     try {
-      await api.post('/messages', {
-        receiver: property.owner._id,
-        property: property._id,
-        message: messageText,
-      });
-      toast.success('Message sent');
-      setMessageOpen(false);
-      setMessageText('');
+      await api.post(`/favorites/${id}`);
+      toast.success('Saved to favorites');
     } catch {
-      toast.error('Failed to send message');
-    } finally {
-      setSending(false);
+      toast.error('Something went wrong');
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!user) return toast.error('Log in to send a message');
+    if (!messageText.trim()) return;
+    try {
+      await api.post('/messages', { receiver: property.owner._id, property: property._id, message: messageText });
+      toast.success('Message sent');
+      setMessageText('');
+      setMessageOpen(false);
+    } catch {
+      toast.error('Something went wrong');
     }
   };
 
   const handleReport = async () => {
     if (!user) return toast.error('Log in to report a listing');
-    setSending(true);
     try {
-      await api.post('/reports', { property: property._id, reason: reportReason, description: reportDesc });
-      toast.success('Report submitted. Our team will review it.');
+      await api.post('/reports', { property: property._id, reason: reportReason, description: reportDescription });
+      toast.success('Report submitted — our team will review it');
       setReportOpen(false);
-      setReportDesc('');
-    } catch {
-      toast.error('Failed to submit report');
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!user) return toast.error('Log in to save properties');
-    try {
-      await api.post(`/favorites/${property._id}`);
-      toast.success('Saved to favorites');
+      setReportDescription('');
     } catch {
       toast.error('Something went wrong');
     }
@@ -96,6 +84,7 @@ export default function PropertyDetails() {
   if (!property) return <div className="py-24 text-center text-gray-500">Property not found.</div>;
 
   const images = property.images?.length ? property.images : [null];
+
   // wa.me needs the FULL international number, digits only, no "+". Listings created
   // before phone numbers required a country code may have stored a bare local Rwandan
   // number (e.g. "0795611238" or "795611238") — detect that shape and default it to
@@ -130,7 +119,6 @@ export default function PropertyDetails() {
         () => toast.error('Could not copy — number is ' + number)
       );
     } else {
-      // Older/insecure-context browsers without navigator.clipboard support.
       const textarea = document.createElement('textarea');
       textarea.value = number;
       textarea.style.position = 'fixed';
@@ -152,7 +140,7 @@ export default function PropertyDetails() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="overflow-hidden rounded-2xl">
-            <img src={imageUrl(images[activeImage])} alt={property.title} className="h-[380px] w-full object-cover" />
+            <img src={imageUrl(images[activeImage])} alt={property.title} className="aspect-[16/10] w-full object-cover" />
           </div>
           {images.length > 1 && (
             <div className="mt-3 flex gap-2 overflow-x-auto">
@@ -160,46 +148,15 @@ export default function PropertyDetails() {
                 <button
                   key={i}
                   onClick={() => setActiveImage(i)}
-                  className={`h-16 w-24 shrink-0 overflow-hidden rounded-lg ring-2 ${
-                    i === activeImage ? 'ring-forest-600' : 'ring-transparent'
+                  className={`h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 ${
+                    i === activeImage ? 'border-forest-600' : 'border-transparent'
                   }`}
                 >
-                  <img src={imageUrl(img)} alt="" className="h-full w-full object-cover" />
+                  <img src={imageUrl(img)} className="h-full w-full object-cover" alt="" />
                 </button>
               ))}
             </div>
           )}
-
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            <Badge tone={property.purpose === 'rent' ? 'green' : 'gold'}>
-              {property.purpose === 'rent' ? 'For Rent' : 'For Sale'}
-            </Badge>
-            {property.isVerified && (
-              <Badge tone="green"><BadgeCheck size={13} /> Verified Property</Badge>
-            )}
-            <Badge tone="gray">{property.propertyType}</Badge>
-          </div>
-
-          <h1 className="mt-3 font-display text-2xl text-charcoal sm:text-3xl">{property.title}</h1>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
-            <MapPin size={15} /> {property.location} {property.address && `— ${property.address}`}
-          </p>
-          <p className="mt-3 font-display text-2xl font-medium text-forest-700">
-            {formatPrice(property.price, property.purpose)}
-          </p>
-
-          <div className="mt-6 flex flex-wrap gap-6 rounded-2xl border border-gray-100 bg-gray-50/60 p-5">
-            {property.bedrooms > 0 && (
-              <div className="flex items-center gap-2 text-sm text-charcoal"><Bed size={17} /> {property.bedrooms} Bedrooms</div>
-            )}
-            {property.bathrooms > 0 && (
-              <div className="flex items-center gap-2 text-sm text-charcoal"><Bath size={17} /> {property.bathrooms} Bathrooms</div>
-            )}
-            {property.size > 0 && (
-              <div className="flex items-center gap-2 text-sm text-charcoal"><Ruler size={17} /> {property.size} m²</div>
-            )}
-            <div className="text-sm text-charcoal">{property.furnished ? 'Furnished' : 'Unfurnished'}</div>
-          </div>
 
           {property.video && (
             <div className="mt-6 overflow-hidden rounded-2xl bg-black shadow-sm">
@@ -208,27 +165,68 @@ export default function PropertyDetails() {
           )}
 
           <div className="mt-8">
-            <h2 className="font-display text-lg text-charcoal">Description</h2>
-            <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-600">{property.description}</p>
-          </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={property.purpose === 'rent' ? 'gold' : 'green'}>{property.purpose === 'rent' ? 'For Rent' : 'For Sale'}</Badge>
+              {property.isVerified && <Badge tone="green"><BadgeCheck size={12} className="mr-1 inline" /> Verified</Badge>}
+              <span className="text-xs uppercase tracking-wide text-gray-400">{property.propertyType}</span>
+            </div>
+            <h1 className="mt-2 font-display text-2xl text-charcoal sm:text-3xl">{property.title}</h1>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
+              <MapPin size={15} /> {property.location} {property.address && `— ${property.address}`}
+            </p>
+            <p className="mt-4 font-display text-3xl text-forest-700">{formatPrice(property.price, property.purpose)}</p>
 
-          {property.amenities?.length > 0 && (
-            <div className="mt-8">
-              <h2 className="font-display text-lg text-charcoal">Amenities</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {property.amenities.map((a) => (
-                  <span key={a} className="rounded-full bg-forest-50 px-3 py-1.5 text-xs font-medium text-forest-700">{a}</span>
-                ))}
+            <div className="mt-6 grid grid-cols-2 gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:grid-cols-4">
+              <div className="text-center">
+                <Bed size={18} className="mx-auto text-forest-600" />
+                <p className="mt-1 text-sm font-medium text-charcoal">{property.bedrooms || 0}</p>
+                <p className="text-xs text-gray-400">Bedrooms</p>
+              </div>
+              <div className="text-center">
+                <Bath size={18} className="mx-auto text-forest-600" />
+                <p className="mt-1 text-sm font-medium text-charcoal">{property.bathrooms || 0}</p>
+                <p className="text-xs text-gray-400">Bathrooms</p>
+              </div>
+              {property.size > 0 && (
+                <div className="text-center">
+                  <Ruler size={18} className="mx-auto text-forest-600" />
+                  <p className="mt-1 text-sm font-medium text-charcoal">{property.size} m²</p>
+                  <p className="text-xs text-gray-400">Size</p>
+                </div>
+              )}
+              <div className="text-center">
+                <p className="mt-1 text-sm font-medium capitalize text-charcoal">{property.furnished ? 'Yes' : 'No'}</p>
+                <p className="text-xs text-gray-400">Furnished</p>
               </div>
             </div>
-          )}
+
+            <div className="mt-8">
+              <h2 className="font-display text-lg text-charcoal">Description</h2>
+              <p className="mt-2 whitespace-pre-line text-sm text-gray-600">{property.description}</p>
+            </div>
+
+            {property.amenities?.length > 0 && (
+              <div className="mt-8">
+                <h2 className="font-display text-lg text-charcoal">Amenities</h2>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {property.amenities.map((a) => (
+                    <span key={a} className="rounded-full bg-forest-50 px-3 py-1.5 text-xs font-medium text-forest-700">{a}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button onClick={() => setReportOpen(true)} className="mt-8 flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500">
+              <Flag size={13} /> Report this listing
+            </button>
+          </div>
         </div>
 
-        {/* Sidebar - contact */}
         <div>
-          <div className="sticky top-24 rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
+          <div className="sticky top-20 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
             <p className="text-xs uppercase tracking-wide text-gray-400">Listed by</p>
             <p className="mt-1 font-display text-lg text-charcoal">{property.owner?.name}</p>
+
             <div className="mt-4 flex flex-col gap-3">
               <Button href={`tel:${property.contactPhone}`} variant="primary" className="w-full" onClick={handleCopyPhone}>
                 <Phone size={16} /> Call {property.contactPhone}
@@ -250,12 +248,6 @@ export default function PropertyDetails() {
                 <Heart size={16} /> Save Property
               </Button>
             </div>
-            <button
-              onClick={() => setReportOpen(true)}
-              className="mt-4 flex w-full items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-red-500"
-            >
-              <Flag size={13} /> Report this listing
-            </button>
           </div>
         </div>
       </div>
@@ -263,57 +255,33 @@ export default function PropertyDetails() {
       {similar.length > 0 && (
         <div className="mt-14">
           <h2 className="font-display text-xl text-charcoal">Similar Properties</h2>
-          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {similar.map((p) => <PropertyCard key={p._id} property={p} />)}
           </div>
         </div>
       )}
 
-      <Modal
-        open={messageOpen}
-        onClose={() => setMessageOpen(false)}
-        title="Message the owner"
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setMessageOpen(false)}>Cancel</Button>
-            <Button variant="primary" loading={sending} onClick={handleSendMessage}>Send</Button>
-          </>
-        }
-      >
+      <Modal open={messageOpen} onClose={() => setMessageOpen(false)} title={`Message ${property.owner?.name}`} footer={<Button onClick={handleSendMessage}>Send</Button>}>
         <textarea
+          rows={4}
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
-          rows={4}
-          placeholder={`Hi, I'm interested in "${property.title}"...`}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus-ring focus:border-forest-500"
+          placeholder="Hi, is this property still available?"
+          className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus-ring focus:border-forest-500"
         />
       </Modal>
 
-      <Modal
-        open={reportOpen}
-        onClose={() => setReportOpen(false)}
-        title="Report this listing"
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setReportOpen(false)}>Cancel</Button>
-            <Button variant="danger" loading={sending} onClick={handleReport}>Submit report</Button>
-          </>
-        }
-      >
+      <Modal open={reportOpen} onClose={() => setReportOpen(false)} title="Report this listing" footer={<Button variant="danger" onClick={handleReport}>Submit Report</Button>}>
         <div className="space-y-3">
-          <select
-            value={reportReason}
-            onChange={(e) => setReportReason(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-          >
+          <select value={reportReason} onChange={(e) => setReportReason(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus-ring">
             {reportReasons.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
           <textarea
-            value={reportDesc}
-            onChange={(e) => setReportDesc(e.target.value)}
             rows={3}
-            placeholder="Add more details (optional)"
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            value={reportDescription}
+            onChange={(e) => setReportDescription(e.target.value)}
+            placeholder="Additional details (optional)"
+            className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus-ring focus:border-forest-500"
           />
         </div>
       </Modal>
