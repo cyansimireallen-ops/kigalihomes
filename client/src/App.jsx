@@ -8,6 +8,7 @@ import { ProtectedRoute, AdminRoute, OwnerRoute } from './components/ProtectedRo
 import Home from './pages/Home';
 import Properties from './pages/Properties';
 import PropertyDetails from './pages/PropertyDetails';
+import AgentProfile from './pages/AgentProfile';
 import Rent from './pages/Rent';
 import Buy from './pages/Buy';
 import About from './pages/About';
@@ -91,6 +92,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/properties" element={<Properties />} />
         <Route path="/properties/:id" element={<PropertyDetails />} />
+        <Route path="/agents/:id" element={<AgentProfile />} />
         <Route path="/rent" element={<Rent />} />
         <Route path="/buy" element={<Buy />} />
         <Route path="/about" element={<About />} />
