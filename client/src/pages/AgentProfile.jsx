@@ -4,7 +4,6 @@ import { BadgeCheck, Calendar } from 'lucide-react';
 import api from '../api/axios';
 import { imageUrl } from '../utils/format';
 import PropertyCard from '../components/PropertyCard';
-import VehicleCard from '../components/VehicleCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function AgentProfile() {
@@ -53,15 +52,6 @@ export default function AgentProfile() {
           <h2 className="font-display text-xl text-charcoal">Properties</h2>
           <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {properties.map((p) => <PropertyCard key={p._id} property={p} />)}
-          </div>
-        </div>
-      )}
-
-      {vehicles?.length > 0 && (
-        <div className="mt-10">
-          <h2 className="font-display text-xl text-charcoal">Vehicles</h2>
-          <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {vehicles.map((v) => <VehicleCard key={v._id} vehicle={v} />)}
           </div>
         </div>
       )}
